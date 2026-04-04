@@ -4,7 +4,6 @@ const axios = require("axios");
 const pdfParse = require("pdf-parse");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { HumanMessage } = require("@langchain/core/messages");
-const { StateGraph, END } = require("@langchain/langgraph");
 
 // LangChain Gemini setup
 const llm = new ChatGoogleGenerativeAI({
@@ -14,7 +13,7 @@ const llm = new ChatGoogleGenerativeAI({
 });
 
 fastify.register(require("@fastify/cors"), {
-  origin: ["http://localhost:3000", "http://localhost:5173"],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
 });
 
@@ -23,7 +22,7 @@ fastify.register(require("@fastify/multipart"), {
 });
 
 fastify.get("/", async (request, reply) => {
-  return { message: "Backend running" };
+  return { message: "Backend running 🚀" };
 });
 
 fastify.get("/jobs", async (request, reply) => {
@@ -81,7 +80,6 @@ fastify.get("/jobs", async (request, reply) => {
   }
 });
 
-// AI Job Matching Route
 fastify.post("/match", async (request, reply) => {
   try {
     const { resumeText, jobs } = request.body;
@@ -121,7 +119,7 @@ Return ONLY valid JSON, no extra text, no markdown.
       })
     );
 
-    const remainingJobs = jobs.slice(10).map(job => ({
+    const remainingJobs = jobs.slice(3).map(job => ({
       ...job,
       matchScore: Math.floor(Math.random() * 40) + 30,
       matchDetails: {},
@@ -138,12 +136,10 @@ Return ONLY valid JSON, no extra text, no markdown.
   }
 });
 
-// LangGraph AI Assistant Route
 fastify.post("/ai/chat", async (request, reply) => {
   try {
     const { message, conversationHistory = [], currentFilters = {} } = request.body;
 
-    // LangGraph State
     const graphState = {
       message,
       conversationHistory,
@@ -153,7 +149,6 @@ fastify.post("/ai/chat", async (request, reply) => {
       response: null,
     };
 
-    // Node 1 - Intent Detection
     const detectIntent = async (state) => {
       const prompt = `
 You are an AI assistant for a job tracking platform.
@@ -186,7 +181,6 @@ Return ONLY valid JSON.
       }
     };
 
-    // Node 2 - Action Router
     const routeAction = async (state) => {
       if (state.intent === "filter_update") {
         const entities = state.entities || {};
@@ -211,8 +205,8 @@ Return ONLY valid JSON.
           ...state,
           filterUpdates,
           response: entities.reset
-            ? "Filters cleared!"
-            : `Filters updated: ${Object.keys(filterUpdates).join(", ")}`,
+            ? "✅ Sab filters clear kar diye!"
+            : `✅ Filters update kar diye: ${Object.keys(filterUpdates).join(", ")}`,
         };
       }
 
@@ -227,7 +221,7 @@ Platform features:
 - Resume upload (PDF/TXT) for AI matching
 - AI job matching with match scores
 - Application tracking (Applied → Interview → Offer/Rejected)
-- AI assistant (you!) for natural language search and filter control
+- AI assistant for natural language search and filter control
 
 Keep answer under 3 sentences.
 `;
@@ -235,7 +229,6 @@ Keep answer under 3 sentences.
         return { ...state, filterUpdates: null, response: result.content };
       }
 
-      // General / job search
       const generalPrompt = `
 You are a helpful job search assistant for JobTrack AI.
 User said: "${state.message}"
@@ -247,7 +240,6 @@ Reply helpfully in 1-2 sentences. Suggest what filters to use if relevant.
       return { ...state, filterUpdates: null, response: result.content };
     };
 
-    // Run LangGraph nodes
     const state1 = await detectIntent(graphState);
     const state2 = await routeAction(state1);
 
@@ -283,8 +275,11 @@ fastify.post("/resume/upload", async (request, reply) => {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 5000 });
-    console.log(" Server started on http://localhost:5000");
+    await fastify.listen({
+      port: process.env.PORT || 5000,
+      host: "0.0.0.0"
+    });
+    console.log(`✅ Server started on port ${process.env.PORT || 5000}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
