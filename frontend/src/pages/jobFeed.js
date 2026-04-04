@@ -37,12 +37,12 @@ function JobFeed({ setIsLoggedIn }) {
     const resume = localStorage.getItem("resume");
     const resumeText = resume ? JSON.parse(resume).text : null;
 
-    fetch("http://localhost:5000/jobs")
+    fetch("https://ai-job-tracker-95.onrender.com/jobs")
       .then(res => res.json())
       .then(async (data) => {
         if (resumeText && data.jobs) {
           try {
-            const matchRes = await fetch("http://localhost:5000/match", {
+            const matchRes = await fetch("https://ai-job-tracker-95.onrender.com/match", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ resumeText, jobs: data.jobs }),

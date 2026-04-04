@@ -15,7 +15,7 @@ function AIChat({ onFilterUpdate }) {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/ai/chat", {
+      const res = await fetch("https://ai-job-tracker-95.onrender.com/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),

@@ -31,7 +31,7 @@ function ResumeUpload({ setHasResume }) {
     formData.append("resume", file);
 
     try {
-      const res = await fetch("http://localhost:5000/resume/upload", {
+      const res = await fetch("https://ai-job-tracker-95.onrender.com/resume/upload", {
         method: "POST",
         body: formData,
       });
